@@ -54,12 +54,17 @@
                 this.sillasTotales = sillas;
                 this.numeroMesa = numeroMesa
                 this.sillasOcupadas = 0;
+                this.grupos = [];
             }
             // Método para agregar un grupo a la mesa
-            agregarGrupo(cantidad) {
+            agregarGrupo(nombre, cantidad) {
                 let sillasDisponibles = this.sillasTotales - this.sillasOcupadas;
                 let grupoAcomodado = Math.min(cantidad, sillasDisponibles);
                 this.sillasOcupadas += grupoAcomodado;
+
+                // Registrar el grupo acomodado en esta mesa
+                this.grupos.push({ nombre: nombre, cantidad: grupoAcomodado, startIndex: startIndex });
+
                 return cantidad - grupoAcomodado; // Retorna el número de personas que no se pudieron acomodar
             }
         }
@@ -71,16 +76,73 @@
 
                 for (let i = 0; i < mesas.length; i++) {
                     if (totalGrupo === 0) break;
-                    totalGrupo = mesas[i].agregarGrupo(totalGrupo);
+                    totalGrupo = mesas[i].agregarGrupo(anfitrion.nombre, totalGrupo);
                 }
 
                 if (totalGrupo > 0) {
-                    console.log(`No hay suficientes mesas para acomodar al grupo de ${anfitrion.nombre} (originalmente ${grupoOriginal} personas, ${totalGrupo} restantes).`);
+                    let anuncio = document.createElement("h2");
+                    anuncio.innerHTML = `No hay suficientes mesas para acomodar al grupo de ${anfitrion.nombre} (originalmente ${grupoOriginal} personas, ${totalGrupo} restantes).`;
+                    divView.appendChild(anuncio);
+
                 }
             }
         }
-            // localStorage.removeItem("anfitriones"); EL BORRADOOOORRRR de anfitriones para probar la app desde el inicio
+        // Esta funcion es para mostrar el estado de mesas en console.logs
+         function mostrarEstadoMesasConsola(mesas) {
+             mesas.forEach(mesa => {
+                 console.log(`Mesa ${mesa.numeroMesa}: ${mesa.sillasOcupadas}/${mesa.sillasTotales} sillas ocupadas.`);
+                 mesa.grupos.forEach(grupo => {
+                     if(grupo.cantidad != 0){
+                         console.log(`  Grupo ${grupo.nombre}: ${grupo.cantidad} personas`);
+                     }
+                 });
+             });
+         }
 
+         function mostrarEstadoMesas(mesas) {
+            const mesasContainer = document.getElementById('view');
+            mesasContainer.innerHTML = '<h2>El mejor acomodo es el siguiente:</h2> <br>';
+            mesas.forEach(mesa => {
+                const mesaDiv = document.createElement('div');
+                mesaDiv.className = 'mesa-container';
+                const mesaCircle = document.createElement('div');
+                mesaCircle.className = 'mesa';
+                mesaCircle.textContent = mesa.numeroMesa;
+                mesaDiv.appendChild(mesaCircle);
+                
+                mesa.grupos.forEach(grupo => {
+                    for (let i = 0; i < grupo.cantidad; i++) {
+                        const invitadoDiv = document.createElement('div');
+                        invitadoDiv.className = 'invitado silla-ocupada';
+                        invitadoDiv.textContent = `${grupo.nombre} ${i+1}`;
+                        mesaDiv.appendChild(invitadoDiv);
+                    }
+                });
+                
+                const sillasRestantes = mesa.sillasTotales - mesa.sillasOcupadas;
+                for (let i = 0; i < sillasRestantes; i++) {
+                    const sillaDiv = document.createElement('div');
+                    sillaDiv.className = 'invitado silla-desocupada';
+                    mesaDiv.appendChild(sillaDiv);
+                }
+                
+                mesasContainer.appendChild(mesaDiv);
+                
+            });
+            mesasContainer.appendChild(back);
+        }
+        // Esta es para mostrarlo en html
+
+
+
+
+
+            // localStorage.removeItem("anfitriones"); EL BORRADOOOORRRR de anfitriones para probar la app desde el inicio
+            let back = document.createElement('button');
+            back.setAttribute("type", "button");
+            back.className = 'btnMesas';
+            back.setAttribute("id","back");
+            back.innerHTML="Volver"
         let boton = document.createElement("button");
             boton.setAttribute("type", "button");
             boton.setAttribute("id", "guardarAnfitrionNames");
@@ -230,10 +292,10 @@
             }
             // Acomodar a los invitados
             acomodarInvitados(anfitriones, mesas);
-            // Mostrar el estado final de las mesas
-            mesas.forEach(mesa => {
-                console.log(`Mesa ${mesa.numeroMesa}: ${mesa.sillasOcupadas}/${mesa.sillasTotales} sillas ocupadas.`);
-            });
+            // Mostrar el estado final de las mesas en consola
+            mostrarEstadoMesasConsola(mesas);
+            // Mostrar el estado final de las mesas en html
+            mostrarEstadoMesas(mesas);
         })
         continuar.addEventListener("click", ()=>{
             console.log(anfitriones);
@@ -250,11 +312,16 @@
             }
             // Acomodar a los invitados
             acomodarInvitados(anfitriones, mesas);
-            // Mostrar el estado final de las mesas
-            mesas.forEach(mesa => {
-                console.log(`Mesa ${mesa.numeroMesa}: ${mesa.sillasOcupadas}/${mesa.sillasTotales} sillas ocupadas.`);
-            });
+            // Mostrar el estado final de las mesas en consola
+            mostrarEstadoMesasConsola(mesas);
+            // Mostrar el estado final de las mesas en html
+            mostrarEstadoMesas(mesas);
 
+        })
+
+        back.addEventListener('click',()=>{
+            divNewOrLoad.className="sign";
+            divView.className +=" missing";
         })
         
         
