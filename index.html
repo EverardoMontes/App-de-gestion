@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Organizadora</title>
+</head>
+<body>
+    <h1>App organizadora</h1>
+    <div class="sign" id="newOrLoad">
+        <h2>Comienza una nueva organización o continúa una ya creada</h2>
+        <button id="nueva" type="button" class="btnMesas">Crear una nueva gestión de mesa!</button>
+    </div>
+    <div class="sign missing" id="mesasNumberDiv">
+        <label for="mesas">Ingresa la cantidad de mesas que tienes a tu disposición</label>
+        <input type="number" id="mesas" placeholder="15" maxlength="2">
+        <br>
+        <br>
+        
+        <button id="fijarMesas" type="button" class="btnMesas"> Esas son las mesas que quiero</button>
+        <button id="fijarMesasback" type="button" class="btnMesas"> Volver</button>
+    </div>
+
+    <div class="sign missing" id="asientosNumberDiv">
+        <label for="mesas">Ingresa la cantidad de sillas que tiene cada mesa</label>
+        <input type="number" id="sillas" placeholder="5" size="1" maxlength="2">
+        <br>
+        <br>
+        
+        <button id="fijarsillas" type="button" class="btnMesas"> Esas son las sillas que tiene mi mesa</button>
+        <button id="volverMesas" type="button" class="btnMesas"> Me equivoqué! Tengo otra cantidad de mesas</button>
+    </div>
+
+    <div class="sign missing" id="cantidadInvitadores">
+        <label for="mesas">¿Cuántos anfitriones elegiste? estas son personas que pueden invitar a otras personas</label>
+        <input type="number" id="anfitrionesCount" placeholder="5" size="1" maxlength="2">
+        <br>
+        <br>
+        
+        <button id="fijarAnfitriones" type="button" class="btnMesas"> Esos son los anfitriones que designé</button>
+        <button id="volverSillas" type="button" class="btnMesas"> Me equivoqué! Tengo otra cantidad de sillas por mesa</button>
+    </div>
+    <div class="sign missing anf" id="invitadosAnfitriones">
+        <h2>Escribe el nombre de cada anfitrion</h2>
+
+    </div>
+    <div class="sign missing" id="view">
+        <h2>El mejor acomodo es el siguiente:</h2>
+    </div>
+    <script>
+        class Mesa{
+            constructor(sillas, numeroMesa){
+                this.sillasTotales = sillas;
+                this.numeroMesa = numeroMesa
+                this.sillasOcupadas = 0;
+            }
+            // Método para agregar un grupo a la mesa
+            agregarGrupo(cantidad) {
+                let sillasDisponibles = this.sillasTotales - this.sillasOcupadas;
+                let grupoAcomodado = Math.min(cantidad, sillasDisponibles);
+                this.sillasOcupadas += grupoAcomodado;
+                return cantidad - grupoAcomodado; // Retorna el número de personas que no se pudieron acomodar
+            }
+        }
+        
+        function acomodarInvitados(anfitriones, mesas) {
+            for (let anfitrion of anfitriones) {
+                let totalGrupo = Number(anfitrion.invitados) + 1; // Incluye al anfitrión
+                let grupoOriginal = totalGrupo; // Guardar el tamaño original del grupo para el mensaje de error
+
+                for (let i = 0; i < mesas.length; i++) {
+                    if (totalGrupo === 0) break;
+                    totalGrupo = mesas[i].agregarGrupo(totalGrupo);
+                }
+
+                if (totalGrupo > 0) {
+                    console.log(`No hay suficientes mesas para acomodar al grupo de ${anfitrion.nombre} (originalmente ${grupoOriginal} personas, ${totalGrupo} restantes).`);
+                }
+            }
+        }
+            // localStorage.removeItem("anfitriones"); EL BORRADOOOORRRR de anfitriones para probar la app desde el inicio
+
+        let boton = document.createElement("button");
+            boton.setAttribute("type", "button");
+            boton.setAttribute("id", "guardarAnfitrionNames");
+            boton.innerHTML="Estos son los nombres de mis anfitriones!"
+            boton.className = "btnMesas"
+        let boton2 = document.createElement("button");
+            boton2.setAttribute("type", "button");
+            boton2.setAttribute("id", "volverAnfitriones");
+            boton2.innerHTML="Me equivoqué!! Es otra cantidad de anfitriones!"
+            boton2.className = "btnMesas"
+        let continuar = document.createElement("button");
+            continuar.setAttribute("type", "button");
+            continuar.setAttribute("id", "continuar");
+            continuar.innerHTML="Continuar con mi mesa anterior"
+            continuar.className = "btnMesas"
+
+
+        let mesasCantidad = localStorage.getItem("mesasCantidad");
+        if(mesasCantidad == null){
+            mesasCantidad = 0;
+        }
+        let sillasCantidad = localStorage.getItem("sillasCantidad");
+        if(sillasCantidad == null){
+            sillasCantidad = 0;
+        }
+        let anfitrionesCantidad = localStorage.getItem("anfitrionesCantidad");
+        if(anfitrionesCantidad == null){
+            anfitrionesCantidad = 0;
+        }
+        let anfitriones = JSON.parse(localStorage.getItem("anfitriones"))
+        if(anfitriones == null){
+            anfitriones = [];
+        }
+
+        let mesas = [];
+        
+
+        let nuevaGestion = document.getElementById("nueva");
+        let botonLockMesas = document.getElementById("fijarMesas");
+        let botonLockSillas = document.getElementById("fijarsillas");
+        let botonLockAnfitriones = document.getElementById("fijarAnfitriones");
+        let botonVolverAnfitrion;
+        let divNewOrLoad = document.getElementById("newOrLoad");
+        let div = document.getElementById("mesasNumberDiv");
+        let divsillas = document.getElementById("asientosNumberDiv");
+        let divAnfitriones = document.getElementById("cantidadInvitadores");
+        let divInvitadoAnfitrion = document.getElementById("invitadosAnfitriones");
+        let divView = document.getElementById("view");
+        if(anfitrionesCantidad != null && mesasCantidad != null && sillasCantidad != null && anfitriones[0]!= null){
+            divNewOrLoad.appendChild(continuar)
+        }
+
+        let botonBack1 = document.getElementById("fijarMesasback");
+        botonBack1.addEventListener("click",()=>{
+            div.className+=" missing";
+            divNewOrLoad.className = "sign";
+
+        })
+        nuevaGestion.addEventListener("click", ()=>{
+            divNewOrLoad.className+= " missing";
+            
+            div.className= "sign";
+        })
+        botonLockMesas.addEventListener("click", ()=>{
+            mesasCantidad = document.getElementById("mesas").value;
+            
+            div.className+= " missing";
+            
+            divsillas.className= "sign";
+        })
+        botonLockSillas.addEventListener("click", ()=>{
+            sillasCantidad = document.getElementById("sillas").value;
+            
+            divsillas.className+= " missing";
+            
+            divAnfitriones.className= "sign";
+        })
+        botonLockAnfitriones.addEventListener("click", ()=>{
+            anfitrionesCantidad = document.getElementById("anfitrionesCount").value;
+            divAnfitriones.className+= " missing";
+            divInvitadoAnfitrion.className= "sign anf";
+            for(let i=0; i<=anfitrionesCantidad-1;i++){
+                let label = document.createElement("label");
+                label.setAttribute("for", "anfitrion "+(i+1));
+                label.innerHTML = "Anfitrión número "+(i+1);
+                let input = document.createElement("input");
+                input.setAttribute("id", "anfitrion "+(i+1));
+                input.setAttribute("type", "text");
+                input.setAttribute("placeholder","Nombre del anfitrion");
+                let label2 = document.createElement("label");
+                label2.setAttribute("for", "anfitrionGuests "+(i+1));
+                label2.innerHTML = "Va a traer la siguiente cantidad de invitados ";
+                let input2 = document.createElement("input");
+                input2.setAttribute("id", "anfitrionGuests "+(i+1));
+                input2.setAttribute("type", "text");
+                input2.setAttribute("placeholder","3");
+                let br = document.createElement("br");
+                divInvitadoAnfitrion.appendChild(label);
+                divInvitadoAnfitrion.appendChild(input);
+                divInvitadoAnfitrion.appendChild(label2);
+                divInvitadoAnfitrion.appendChild(input2);
+                divInvitadoAnfitrion.appendChild(br);
+                
+            }
+            
+            divInvitadoAnfitrion.appendChild(boton);
+            divInvitadoAnfitrion.appendChild(boton2);
+        })
+
+        
+        let botonVolverMesas = document.getElementById("volverMesas");
+        botonVolverMesas.addEventListener("click", ()=>{
+            divsillas.className+=" missing";
+            div.className = "sign";
+        })
+        let botonVolverSillas = document.getElementById("volverSillas");
+        botonVolverSillas.addEventListener("click", ()=>{
+            divAnfitriones.className+=" missing";
+            divsillas.className = "sign";
+        })
+        
+        boton2.addEventListener("click",()=>{
+            console.log("anfitriones abortados")
+            divInvitadoAnfitrion.innerHTML = "<h2>Escribe el nombre de cada anfitrion</h2>";
+            divInvitadoAnfitrion.className+=" missing";
+            anfitriones = [];
+            divAnfitriones.className = "sign";
+        });
+
+        boton.addEventListener("click",()=>{
+            let foo = document.querySelectorAll('.anf > input');
+            anfitriones = [];
+            for (let i = 0; i < foo.length; i+=2) {
+                anfitriones.push({nombre:foo[i].value, invitados:foo[i+1].value});
+            }
+            localStorage.setItem("mesasCantidad", mesasCantidad);
+            localStorage.setItem("sillasCantidad", sillasCantidad);
+            localStorage.setItem("anfitrionesCantidad", anfitrionesCantidad);
+            localStorage.removeItem("anfitriones");
+            localStorage.setItem("anfitriones", JSON.stringify(anfitriones));
+            //Aqui pasa al siguiente div 
+            divView.className ="sign"
+            divInvitadoAnfitrion.className+=" missing";
+            mesas = [];
+            for (let i = 0; i < mesasCantidad; i++) {
+                mesas.push(new Mesa(sillasCantidad, i + 1));
+            }
+            // Acomodar a los invitados
+            acomodarInvitados(anfitriones, mesas);
+            // Mostrar el estado final de las mesas
+            mesas.forEach(mesa => {
+                console.log(`Mesa ${mesa.numeroMesa}: ${mesa.sillasOcupadas}/${mesa.sillasTotales} sillas ocupadas.`);
+            });
+        })
+        continuar.addEventListener("click", ()=>{
+            console.log(anfitriones);
+            console.log(anfitrionesCantidad + " cantidad de anfitriones");
+            console.log(mesasCantidad + " son mesas");
+            console.log(sillasCantidad + " son sillas");
+            //Aqui pasa al siguiente div 
+            divView.className ="sign"
+            divInvitadoAnfitrion.className+=" missing";
+            divNewOrLoad.className+=" missing";
+            mesas = [];
+            for (let i = 0; i <mesasCantidad; i++) {
+                mesas.push(new Mesa(sillasCantidad, i + 1));
+            }
+            // Acomodar a los invitados
+            acomodarInvitados(anfitriones, mesas);
+            // Mostrar el estado final de las mesas
+            mesas.forEach(mesa => {
+                console.log(`Mesa ${mesa.numeroMesa}: ${mesa.sillasOcupadas}/${mesa.sillasTotales} sillas ocupadas.`);
+            });
+
+        })
+        
+        
+    </script>
+</body>
+</html>
