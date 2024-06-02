@@ -57,33 +57,38 @@
                 this.grupos = [];
             }
             // Método para agregar un grupo a la mesa
-            agregarGrupo(nombre, cantidad) {
+            agregarGrupo(nombre, cantidad, startIndex) {
                 let sillasDisponibles = this.sillasTotales - this.sillasOcupadas;
                 let grupoAcomodado = Math.min(cantidad, sillasDisponibles);
                 this.sillasOcupadas += grupoAcomodado;
-
-                // Registrar el grupo acomodado en esta mesa
                 this.grupos.push({ nombre: nombre, cantidad: grupoAcomodado, startIndex: startIndex });
-
-                return cantidad - grupoAcomodado; // Retorna el número de personas que no se pudieron acomodar
+                return cantidad - grupoAcomodado;
             }
         }
         
         function acomodarInvitados(anfitriones, mesas) {
+            let invitadosIndex = {}; // Para mantener el índice de cada invitado
+
             for (let anfitrion of anfitriones) {
-                let totalGrupo = Number(anfitrion.invitados) + 1; // Incluye al anfitrión
-                let grupoOriginal = totalGrupo; // Guardar el tamaño original del grupo para el mensaje de error
+                if (!invitadosIndex[anfitrion.nombre]) {
+                    invitadosIndex[anfitrion.nombre] = 1;
+                }
+
+                let totalGrupo = Number(anfitrion.invitados) + 1;
+                let grupoOriginal = totalGrupo;
 
                 for (let i = 0; i < mesas.length; i++) {
                     if (totalGrupo === 0) break;
-                    totalGrupo = mesas[i].agregarGrupo(anfitrion.nombre, totalGrupo);
+
+                    let startIndex = invitadosIndex[anfitrion.nombre];
+                    totalGrupo = mesas[i].agregarGrupo(anfitrion.nombre, totalGrupo, startIndex);
+
+                    invitadosIndex[anfitrion.nombre] += grupoOriginal - totalGrupo;
+                    grupoOriginal = totalGrupo;
                 }
 
                 if (totalGrupo > 0) {
-                    let anuncio = document.createElement("h2");
-                    anuncio.innerHTML = `No hay suficientes mesas para acomodar al grupo de ${anfitrion.nombre} (originalmente ${grupoOriginal} personas, ${totalGrupo} restantes).`;
-                    divView.appendChild(anuncio);
-
+                    console.log(`No hay suficientes mesas para acomodar al grupo de ${anfitrion.nombre} (originalmente ${grupoOriginal} personas, ${totalGrupo} restantes).`);
                 }
             }
         }
@@ -98,6 +103,7 @@
                  });
              });
          }
+         
 
          function mostrarEstadoMesas(mesas) {
             const mesasContainer = document.getElementById('view');
@@ -114,7 +120,7 @@
                     for (let i = 0; i < grupo.cantidad; i++) {
                         const invitadoDiv = document.createElement('div');
                         invitadoDiv.className = 'invitado silla-ocupada';
-                        invitadoDiv.textContent = `${grupo.nombre} ${i+1}`;
+                        invitadoDiv.textContent = `${grupo.nombre} ${grupo.startIndex + i}`;
                         mesaDiv.appendChild(invitadoDiv);
                     }
                 });
@@ -127,7 +133,6 @@
                 }
                 
                 mesasContainer.appendChild(mesaDiv);
-                
             });
             mesasContainer.appendChild(back);
         }
